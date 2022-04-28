@@ -46,7 +46,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 
 //define the use of session by the app
 app.use(session({
-  secret: 'this is out little secret.',
+  secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
 }));
@@ -122,7 +122,7 @@ app.post("/login",function(req,res){
 		username: req.body.username,
 		password: req.body.password
 	});
-	console.log("new user is "+ newUser);
+	// console.log("new user is "+ newUser);
 	req.login(newUser, function(err){
 		
 		if(err){
