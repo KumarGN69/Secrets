@@ -136,6 +136,11 @@ app.post("/login",function(req,res){
 	});
 });
 
+app.get("/logout",function(req,res){
+	req.logout();
+	res.redirect("/");
+});
+
 //Start **************commenting out the hashing implementation for Cookies and Sessions ********************
 //define the HTTP POST route for REGISTER
 // app.post("/register",function(req,res){
