@@ -1,51 +1,72 @@
-
+//DEFINE the usage different packages****************************************************************************************************************************//
 require('dotenv').config();
 // port for app to listen to events
 const port = process.env.PORT || 3000;
 
-//define the express server
+//for express server
 const express = require("express");
 
-//define the parser for events and information from HTML body
+//for parsing the information from HTML body
 const bodyParser = require("body-parser");
-//define the ejs template
+//ejs template
 const ejs = require("ejs");
 
-//define the mongoose ORM for MongoDB
+//mongoose ORM for MongoDB
 const mongoose = require("mongoose");
 
 //define the encryption engine
 // const encrypt = require("mongoose-encryption");
 
-//define hash algorithm
+//hash algorithm to be used
 const md5 = require("md5");
 
 //instantiate the express app
 const app = express();
 
 //define usage of bcrypt
-const bcrypt = require("bcrypt");
+// const bcrypt = require("bcrypt");
+
+//define dependencies for cookies and sessions
+const session= require("express-session");
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
 
 //define number of salt rounds to use
-const saltRounds = 10;
-//set the ejs template views
+// const saltRounds = 10;
+
+//APP settings ****************************************************************************************************************************//
+//ejs template views
 app.set('view engine', 'ejs');
 
-// set the path for ejs templates
+// ejs templates
 app.use(express.static("public"));
 
 //for utf8 based parsing
 app.use(bodyParser.urlencoded({extended:true}));
 
+//define the use of session by the app
+app.use(session({
+  secret: 'this is out little secret.',
+  resave: false,
+  saveUninitialized: true,
+}));
+
+//use of passport package by  the app
+app.use(passport.initialize());
+app.use(passport.session());
+
+//DB related configurations and connections ****************************************************************************************************************************//
 //connect to the cloud version of MongoDB atlas
 mongoose.connect("mongodb+srv://admin-kumargn:Gnk69%40Jay73@cluster0.vpzxn.mongodb.net/userDB");
 
 //define the schema for the DB
 const userSchema = new mongoose.Schema({
-	email: String,
+	username: String,
 	password: String
 });
 
+//adding the passport plugin for the mongoose
+userSchema.plugin(passportLocalMongoose, {usernameUnique: false});
 //creating the encryption string and setting the encryption for selected field
 // const secret = process.env.SECRET;
 
@@ -53,7 +74,12 @@ const userSchema = new mongoose.Schema({
 //define the new model for creating and using the mongoDB collections
 const User = mongoose.model("User",userSchema);
 
+//define the use of passport plugin for mongoose in the model
+passport.use(User.createStrategy());
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
+//ROUTE definitions ****************rs************************************************************************************************************//
 //define the HTTP GET HOME Route for the server
 app.get("/",function(req,res){
 	res.render("home");
@@ -68,52 +94,98 @@ app.get("/login",function(req,res){
 app.get("/register",function(req,res){
 	res.render("register");
 });
-
-//define the HTTP POST route for REGISTER
+//GET route for secrets page
+app.get("/secrets",function(req,res){
+	//if user is authenticated then render secrets page else redirect to login page
+	if(req.isAuthenticated()){
+		res.render("secrets");
+	}else{
+		res.redirect("/login");
+	}
+});
+//POST route for Register page
 app.post("/register",function(req,res){
-	
-	bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-    // Store hash in your password DB.
-	
-	const newUser = new User({
-		email: req.body.username,
-		password: hash
-	});
-	newUser.save(function(err){
-		if(!err){
-			console.log("Username and Password saved!");
-			res.render("secrets");
-		}else{
-			console.log(err);
-		}
-	});	
-});
-	
-	
-});
-
-//define the HTTP POST for LOGIN
-app.post("/login",function(req,res){
-	// const username = req.body.username;
-	// const password = req.body.password;
-	User.findOne({email:req.body.username},function(err,foundUser){
+	User.register({username: req.body.username},req.body.password,function(err,user){
 		if(err){
 			console.log(err);
-			// res.render("user not found" + err);
+			res.redirect("/login");
 		}else{
-			if(foundUser){
-				
-				bcrypt.compare(req.body.password, foundUser.password, function(err,result){
-				if(result === true){
-					res.render("secrets");
-				}
-			 });
-			}
-			
+			passport.authenticate("local")(req,res, function(){
+				res.redirect("/secrets");
+			});
 		}
 	});
-	
 });
+
+app.post("/login",function(req,res){
+	const newUser = new User({
+		username: req.body.username,
+		password: req.body.password
+	});
+	console.log("new user is "+ newUser);
+	req.login(newUser, function(err){
+		
+		if(err){
+			console.log("errorfound 1"+ err);
+			
+		}else{
+			passport.authenticate("local")(req,res, function(){
+				res.redirect("/secrets");
+			});
+		}
+	});
+});
+
+//Start **************commenting out the hashing implementation for Cookies and Sessions ********************
+//define the HTTP POST route for REGISTER
+// app.post("/register",function(req,res){
+	
+// 	bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+//     // Store hash in your password DB.
+	
+// 	const newUser = new User({
+// 		email: req.body.username,
+// 		password: hash
+// 	});
+// 	newUser.save(function(err){
+// 		if(!err){
+// 			console.log("Username and Password saved!");
+// 			res.render("secrets");
+// 		}else{
+// 			console.log(err);
+// 		}
+// 	});	
+// });
+	
+	
+// });
+
+//define the HTTP POST for LOGIN
+// app.post("/login",function(req,res){
+// 	// const username = req.body.username;
+// 	// const password = req.body.password;
+// 	User.findOne({email:req.body.username},function(err,foundUser){
+// 		if(err){
+// 			console.log(err);
+// 			// res.render("user not found" + err);
+// 		}else{
+// 			if(foundUser){
+				
+// 				bcrypt.compare(req.body.password, foundUser.password, function(err,result){
+// 				if(result === true){
+// 					res.render("secrets");
+// 				}
+// 			 });
+// 			}
+			
+// 		}
+// 	});
+	
+// });
+//End **************commenting out the hashing implementation for Cookies and Sessions ********************
+
+
+//INIIALIZE server and listen to events ****************************************************************************************************************************//
 //start the server and listen to the events on the defined PORT
 app.listen(port, function(err){
 	if(!err){
