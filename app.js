@@ -23,6 +23,11 @@ const md5 = require("md5");
 //instantiate the express app
 const app = express();
 
+//define usage of bcrypt
+const bcrypt = require("bcrypt");
+
+//define number of salt rounds to use
+const saltRounds = 10;
 //set the ejs template views
 app.set('view engine', 'ejs');
 
@@ -66,9 +71,13 @@ app.get("/register",function(req,res){
 
 //define the HTTP POST route for REGISTER
 app.post("/register",function(req,res){
+	
+	bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+    // Store hash in your password DB.
+	
 	const newUser = new User({
 		email: req.body.username,
-		password: md5(req.body.password)
+		password: hash
 	});
 	newUser.save(function(err){
 		if(!err){
@@ -77,7 +86,10 @@ app.post("/register",function(req,res){
 		}else{
 			console.log(err);
 		}
-	});
+	});	
+});
+	
+	
 });
 
 //define the HTTP POST for LOGIN
@@ -89,11 +101,18 @@ app.post("/login",function(req,res){
 			console.log(err);
 			// res.render("user not found" + err);
 		}else{
-			if(foundUser.password === md5(req.body.password)){
-				res.render("secrets");
+			if(foundUser){
+				
+				bcrypt.compare(req.body.password, foundUser.password, function(err,result){
+				if(result === true){
+					res.render("secrets");
+				}
+			 });
 			}
+			
 		}
 	});
+	
 });
 //start the server and listen to the events on the defined PORT
 app.listen(port, function(err){
