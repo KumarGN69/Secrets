@@ -57,6 +57,7 @@
     "minimatch": "^3.1.2",
     "mongoose": "^6.3.1",
     "mongoose-encryption": "^2.1.2",
+    "mongoose-findorcreate": "^3.0.0",
     "ms": "^2.0.0",
     "negotiator": "^0.6.3",
     "object-inspect": "^1.12.0",

@@ -30,6 +30,8 @@ const app = express();
 const session= require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const findOrCreate = require('mongoose-findorcreate');
 
 //define number of salt rounds to use
 // const saltRounds = 10;
@@ -68,6 +70,7 @@ const userSchema = new mongoose.Schema({
 
 //adding the passport plugin for the mongoose
 userSchema.plugin(passportLocalMongoose, {usernameUnique: false});
+userSchema.plugin(findOrCreate);
 //creating the encryption string and setting the encryption for selected field
 // const secret = process.env.SECRET;
 
@@ -80,14 +83,34 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+passport.use(new GoogleStrategy({
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "https://secrets-kqndw.run.goorm.io/auth/google/secrets"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    User.findOrCreate({ googleId: profile.id }, function (err, user) {
+      return cb(err, user);
+    });
+  }
+));
 //ROUTE definitions ****************rs************************************************************************************************************//
 //define the HTTP GET HOME Route for the server
 app.get("/",function(req,res){
 	res.render("home");
 });
 
+app.get("/auth/google",passport.authenticate('google', { scope: ['profile'], failureRedirect: '/login', failureMessage: true  }));
+
+app.get('/auth/google/secrets', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/secrets');
+  });
+
 //define the HTTP GET LOGIN  Route for the server
-app.get("/login",function(req,res){
+app.get("/login",function(req,res){rs
 	res.render("login");
 });
 
