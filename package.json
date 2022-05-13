@@ -63,6 +63,7 @@
     "on-finished": "^2.4.1",
     "parseurl": "^1.3.3",
     "passport": "^0.5.2",
+    "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^7.0.0",
     "path-to-regexp": "^0.1.7",
@@ -88,5 +89,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "KumarGN",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KumarGN69/Secrets.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KumarGN69/Secrets/issues"
+  },
+  "homepage": "https://github.com/KumarGN69/Secrets#readme"
 }

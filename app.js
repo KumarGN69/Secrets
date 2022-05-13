@@ -34,6 +34,7 @@ const passportLocalMongoose = require("passport-local-mongoose");
 //define number of salt rounds to use
 // const saltRounds = 10;
 
+// console.log(process.env);
 //APP settings ****************************************************************************************************************************//
 //ejs template views
 app.set('view engine', 'ejs');
