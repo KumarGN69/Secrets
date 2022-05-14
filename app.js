@@ -65,7 +65,8 @@ mongoose.connect("mongodb+srv://admin-kumargn:Gnk69%40Jay73@cluster0.vpzxn.mongo
 //define the schema for the DB
 const userSchema = new mongoose.Schema({
 	username: String,
-	password: String
+	password: String,
+	googleID: String
 });
 
 //adding the passport plugin for the mongoose
@@ -89,7 +90,9 @@ passport.use(new GoogleStrategy({
     callbackURL: "https://secrets-kqndw.run.goorm.io/auth/google/secrets"
   },
   function(accessToken, refreshToken, profile, cb) {
+	console.log(profile);
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
+		console.log(user);
       return cb(err, user);
     });
   }
@@ -110,7 +113,7 @@ app.get('/auth/google/secrets',
   });
 
 //define the HTTP GET LOGIN  Route for the server
-app.get("/login",function(req,res){rs
+app.get("/login",function(req,res){
 	res.render("login");
 });
 
